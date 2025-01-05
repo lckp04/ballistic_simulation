@@ -66,7 +66,7 @@ class Detector(
             coolDown -= dt
         }
 
-        this.interceptors.values.forEach { it.run(verbalize) }
+        this.interceptors.values.forEach { it.run(true) }
     }
 
     private fun findTarget(verbalize: Boolean) {

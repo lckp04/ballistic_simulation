@@ -76,4 +76,8 @@ data class Vector(var dx : Double, var dy : Double, var dz : Double) {
     fun asCoordinates() : MutablePoint {
         return MutablePoint(dx, dy, dz)
     }
+
+    override fun toString(): String {
+        return "($dx, $dy, $dz)"
+    }
 };

@@ -1,3 +1,5 @@
+import kotlin.math.min
+
 interface Target {
     fun move()
     fun print_state()
@@ -23,9 +25,11 @@ open class Missile(
     override fun move() {
         // changes currentPosition based on current kinetic information, which may change if the GS deems necessary
         // currently missile flies in a straight line
-        val newKI = this.guidance.change_KI(target, currentPosition, this.currentKI);
+        val newKI = this.guidance.change_KI(
+            target, currentPosition, this.currentKI,
+            targetVector = Vector(0.0, 0.0, 0.0));
         val turnDecelerationFactor = newKI / this.currentKI;
-        this.currentKI = newKI.scale_to(turnDecelerationFactor * (this.currentKI.magnitude()) + (((this.topSpeed - this.currentKI.magnitude()) / this.topSpeed) * TWR))
+        this.currentKI = newKI.scale_to(min((turnDecelerationFactor * (this.currentKI.magnitude()) + (((this.topSpeed - this.currentKI.magnitude()) / this.topSpeed) * TWR)), topSpeed))
 
         currentPosition.increment_position(currentKI, dt);
 

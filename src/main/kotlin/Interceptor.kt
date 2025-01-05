@@ -1,6 +1,3 @@
-import kotlin.math.PI
-import kotlin.math.acos
-
 class Interceptor(
     var track : Target,
     private val startPosition : Point,
@@ -15,7 +12,7 @@ class Interceptor(
     private val timeOut : Double = 500.0,
     private val initialKI : Vector = Vector(0.0, 0.0, 10.0),
 ) {
-    private var launch_time = time
+    private var launchTime = time
 
     var alive = true
         private set
@@ -34,7 +31,7 @@ class Interceptor(
             ki = this.ki,
             heading_vector = this.ki,
             thrust = this.thrust,
-            burnTime = this.burnTime + this.launch_time,
+            burnTime = this.burnTime + this.launchTime,
             dragCoefficient = this.dragCoefficient,
             crossSectionalArea = this.crossSectionalArea,
             emptyWeight = this.emptyWeight,
@@ -44,7 +41,7 @@ class Interceptor(
     fun run(verbalise : Boolean = false) {
         checkTimeout();
 
-        if (alive) {
+        if (alive && launched) {
             var newKI : Vector;
             if (coolDown <= 0) {
                 newKI = guidance_strategy.change_KI(track.getCoordinate(), this.position, this.ki, track.getKI())
@@ -68,13 +65,14 @@ class Interceptor(
 
             if (verbalise) {
                 println("Interceptor flying.")
-                println("   Time : $time")
-                println("   Time since launch : ${time - this.launch_time}")
+//                println("   Time : $time")
+                println("   Time since launch : ${time - this.launchTime}")
                 println("   Interceptor heading : (${this.ki.dx} , ${this.ki.dy} , ${this.ki.dz})")
                 println("   Interceptor Speed : ${this.ki.magnitude()} (Mach ${
                     this.ki.magnitude().div(340.0)
                 })")
-                println("   Distance from launcher : ${this.startPosition.toCoordinates().compare_with(this.position)}")
+//                println("   Interceptor location : ${this.position}")
+//                println("   Distance from launcher : ${this.startPosition.toCoordinates().compare_with(this.position)}")
                 println("   Altitude : ${this.position.z}")
                 println("   Distance to target : ${this.position.compare_with(track.getCoordinate())}")
 
@@ -94,7 +92,7 @@ class Interceptor(
     }
 
     private fun checkTimeout() {
-        this.alive = launch_time + timeOut > time
+        this.alive = launchTime + timeOut > time
     }
 
     private fun check_proximity_to_target() {
@@ -111,8 +109,13 @@ class Interceptor(
 
     fun launch() {
         if (!launched) {
-            this.launch_time = time
+            // 'Start up' the missile
+            this.launchTime = time
+            this.guidance_strategy.setMissile(this);
             launched = true
+            println("Launched interceptor")
+        } else {
+            throw IllegalStateException("Already launched")
         }
     }
 
@@ -132,5 +135,10 @@ class Interceptor(
     /* Returns the delta V of this missile */
     fun getDV() : Double {
         return (thrust * burnTime) / emptyWeight
+    }
+
+    /* Returns whether the missile is still in its' boost phase or not */
+    fun isBurning() : Boolean {
+        return time < (this.launchTime + burnTime)
     }
 }

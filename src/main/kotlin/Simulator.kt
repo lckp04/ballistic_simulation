@@ -55,7 +55,7 @@ fun main() {
         detection_radius = 120000.0,
         refresh_rate = 0.0,
         simulator = simulator,
-        interceptor_range = 50000.0,
+        interceptor_range = 100000.0,
         interceptor_generator = ::mediumRangeMissile,
     )
 
@@ -65,5 +65,5 @@ fun main() {
 //    simulator.add_target(test_aero_2)
 //    simulator.add_target(test_SRBM)
 
-    simulator.run_simulation_with_time( 340.0, radar, engagement = true, max_engagement_attempts = 1, verbose = true)
+    simulator.run_simulation_with_time( 340.0, radar, engagement = true, max_engagement_attempts = 1, verbose = false)
 }

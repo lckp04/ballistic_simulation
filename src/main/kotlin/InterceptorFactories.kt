@@ -16,16 +16,16 @@ fun shortRangeMissile(target : Target, launcher_location : MutablePoint) : Inter
 fun mediumRangeMissile(target : Target, launcher_location : MutablePoint) : Interceptor {
     return Interceptor(
         track = target,
-        thrust = 120000.0,
+        thrust = 140000.0,
         emptyWeight = 900.0,
-        burnTime = 40.0,
+        burnTime = 55.0,
         crossSectionalArea = 0.34,
         dragCoefficient = 0.2,
         warheadRadius = 10.0,
         startPosition = launcher_location.fix(),
-        timeOut = 100.0,
+        timeOut = 300.0,
         guidance_strategy = QuasiBallisticSARHGuidance(
-            dv = 5333.4
+            dv = 8555.0
         ),
         initialKI = Vector(-30.0, 0.0, 30.0) // simulates booster
     )

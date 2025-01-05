@@ -8,7 +8,7 @@ data class Point(val x: Double, val y: Double, val z: Double) {
 
 data class MutablePoint(var x : Double, var y : Double, var z : Double) {
     override fun toString() : String {
-        return "Location: $x, $y, $z";
+        return "($x, $y, $z)";
     }
 
     /**
