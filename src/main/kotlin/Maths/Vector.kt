@@ -1,7 +1,11 @@
+package Maths
+
+import kotlin.math.acos
+
 data class Vector(var dx : Double, var dy : Double, var dz : Double) {
 
     /**
-     * Returns the magnitude of the kinetic vector of the craft as a double
+     * Return the magnitude of the vector
      */
     fun magnitude() : Double {
         return Math.sqrt(dx * dx + dy * dy + dz * dz);
@@ -71,13 +75,9 @@ data class Vector(var dx : Double, var dy : Double, var dz : Double) {
     }
 
     /**
-     * Returns a coordinates version of KI
+     * Returns from 0 to PI radians
      */
-    fun asCoordinates() : MutablePoint {
-        return MutablePoint(dx, dy, dz)
-    }
-
-    override fun toString(): String {
-        return "($dx, $dy, $dz)"
+    fun angleBetweenAbs(other : Vector) : Double {
+        return acos(this * other / (this.magnitude() * other.magnitude()))
     }
 };

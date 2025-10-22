@@ -1,28 +1,39 @@
+import Interceptor.Interceptor
+import Maths.CartesianCoordinates.MutableCartesianCoordinate
+import Maths.Vector
 import java.util.*
+import Interfaces.Target
+import Maths.CartesianCoordinates.CartesianCoordinates
 
 // a detector can detect a moving object or ballistic object, track it, and store kinetic information about those
 // tracks
 
 data class Track(
-    var location : MutablePoint,
+    var location : MutableCartesianCoordinate,
     var ki : Vector
 )
 
 class Detector(
-    private val location : MutablePoint,
-    private val detection_radius : Double,
-    private val simulator : Simulator,
-    private val refresh_rate : Double, // number of seconds between refreshes
-    private val interceptor_range : Double = 20000.0, // range of the interceptor
-    val interceptor_generator : (target : Target, launcher_location : MutablePoint) -> Interceptor,
-    val maxTargetVelocity : Int = 5000,
+    private val location: CartesianCoordinates,
+    private val detection_radius: Double,
+    private val simulator: Simulator,
+    private val refresh_rate: Double, // number of seconds between refreshes
+    private val interceptor_range: Double = 20000.0, // range of the interceptor
+    val interceptor_generator: (target : Target, launcher_location : MutableCartesianCoordinate, owner: Simulator) -> Interceptor,
+    val maxTargetVelocity: Int = 5000,
+    val owner: Simulator
 ) {
     private val tracking_targets : LinkedList<Target> = LinkedList()
     private val interceptors : MutableMap<Target, Interceptor> = mutableMapOf()
     private var coolDown : Double = refresh_rate
     private var interceptors_deployed = 0
 
-    fun scan(verbalize: Boolean, engagement: Boolean = false, max_engagement_attempts: Int) {
+    fun scan(
+        verbalize: Boolean,
+        missileVerbalise : Boolean,
+        engagement: Boolean = false,
+        max_engagement_attempts: Int
+    ) {
         if (coolDown <= 0) {
             findTarget(verbalize)
 
@@ -33,21 +44,23 @@ class Detector(
                         // there is no interceptor deployed for that target, or the interceptor we have deployed
                         // for the target has died.
                         if (verbalize) {
-                            println("Assigning interceptor")
+                            owner.report.appendLine("Assigning interceptor")
                         }
-                        val interceptor = interceptor_generator(target, this.location)
+                        val interceptor = interceptor_generator(target, this.location.toMutable(), owner)
 
                         // determining if the interceptor can be launched
                         val distance_to_target = this.location.to(target.getCoordinate()).magnitude()
                         if (distance_to_target <= interceptor_range
                             && !interceptor.launched
-                            && interceptors_deployed < max_engagement_attempts) {
+                            && interceptors_deployed < max_engagement_attempts)
+                        {
                             interceptor.launch()
                             interceptors_deployed++
                         }
 
                         this.interceptors[target] = interceptor
                     } else {
+                        // An interceptor has been deployed already. We will attempt to launch it again if the original launching didn't work
                         val distance_to_target = (this.location - target.getCoordinate()).magnitude()
                         if (distance_to_target <= interceptor_range
                             && !interceptors[target]!!.launched
@@ -66,17 +79,17 @@ class Detector(
             coolDown -= dt
         }
 
-        this.interceptors.values.forEach { it.run(true) }
+        this.interceptors.values.forEach { it.run(missileVerbalise) }
     }
 
     private fun findTarget(verbalize: Boolean) {
-        val newtargets = this.simulator.get_within_radius(location, detection_radius)
+        val newtargets : List<Interfaces.Target> = this.simulator.get_within_radius(location.toMutable(), detection_radius)
 
         // generate a map between what we got from the new scan
         // with the previous list of targets
         // so we can keep the list of interceptors to target refreshed
         val prevTargetToNewTarget : MutableMap<Target, Target?> = mutableMapOf()
-        for (newTarget in newtargets) {
+        for (newTarget : Target in newtargets) {
             val previous_track : Target? = tracking_targets.filter { target ->
                 target.getCoordinate().compare_with(newTarget.getCoordinate()) <= (maxTargetVelocity * refresh_rate) && target.isAlive() }.firstOrNull()
             prevTargetToNewTarget[newTarget] = previous_track
@@ -103,18 +116,20 @@ class Detector(
     }
 
     fun report() {
-        println("=================================")
-        println("t = ${time}. Currently tracking targets")
-        println("Interceptors out : ${this.interceptors.filter { (k, v) -> v.alive }.size}")
-        println("Interceptors launched (total) : ${this.interceptors_deployed}")
-        tracking_targets.forEachIndexed { index, target : Target ->
-            println("Target $index")
-            println("    ${target.getCoordinate()}")
-            println("    Speed ${target.getKI().magnitude()} (Mach ${
-                target.getKI().magnitude().div(340.0)
-            })")
-            println("    Distance to ${(this.location - target.getCoordinate()).magnitude()}")
-            println("---------------------------------------")
+        if (!tracking_targets.isEmpty()) {
+            owner.report.appendLine("=================================")
+            owner.report.appendLine("t = ${time}. Currently tracking targets")
+            owner.report.appendLine("Interceptors out : ${this.interceptors.filter { (k, v) -> v.alive }.size}")
+            owner.report.appendLine("Interceptors launched (total) : ${this.interceptors_deployed}")
+            tracking_targets.forEachIndexed { index, target : Target ->
+                owner.report.appendLine("Target $index")
+                owner.report.appendLine("    ${target.getCoordinate()}")
+                owner.report.appendLine("    Speed ${target.getVelocity().magnitude()} (Mach ${
+                    target.getVelocity().magnitude().div(340.0)
+                })")
+                owner.report.appendLine("    Distance to ${(this.location - target.getCoordinate()).magnitude()}")
+                owner.report.appendLine("---------------------------------------")
+            }
         }
     }
 }

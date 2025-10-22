@@ -1,0 +1,4 @@
+Use "dynamic" gravity instead of general "downforce".
+    Require earth-relative coordinates (X)
+    Update all collision checks with a new function to see if it collides with the surface of the planet
+    Modify all targets to use spherical coordinates for target and launch site, as well as initial velocity vectors
