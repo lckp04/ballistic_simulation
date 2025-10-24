@@ -1,5 +1,0 @@
-Crashed at 14972.0km from launchsite after 4279.280000046986 seconds
-Crashed at (r = 6377985.294527412, θ = 2.3649512017600696, Ψ = -1.5707963267948968)
-Terminal velocity : Mach 23.98498360210771)
-Simulation ended
-Time : 4279.280000046986

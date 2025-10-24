@@ -4,7 +4,6 @@ import Maths.CartesianCoordinates.MutableCartesianCoordinate
 import Maths.CartesianCoordinates.CartesianCoordinate
 import Maths.Vector
 import Plotter.SpaceTimeLogger
-import Presets.launchSite
 import Presets.launchSiteSpherical
 import Simulator
 import dt
@@ -65,14 +64,14 @@ fun ballistic_calculator(
 
 // An object that simulates a ballistic system from zero velocity.
 
-class Ballistic(
+class PoweredBallistic(
     val startPosition : CartesianCoordinate,
     val headingVector : Vector,
     val thrust : Double, // force :: Newtons
     val burnTime : Double, // time :: Seconds
     val emptyWeight : Double, // weight :: kg
     val fuelMass : Double = 0.0,
-    val dragCoefficient : Double,
+    val ballisticProfile : BallisticProfile = defaultBallisticProfile,
     val crossSectionalArea : Double,
     val launchTime : Double = 0.0,
 ) : Interfaces.Target {
@@ -97,7 +96,7 @@ class Ballistic(
             burnTime = burnTime + launchTime,
             mass = emptyWeight +
                     (fuelMass * max(0.0, min(1.0, burnTime - (time - launchTime)) / burnTime)),
-            dragCoefficient = dragCoefficient,
+            dragCoefficient = this.ballisticProfile.dragCoefficient(this.ki),
             crossSectionalArea = crossSectionalArea,
             heading_vector = headingVector,
             position = this.position,

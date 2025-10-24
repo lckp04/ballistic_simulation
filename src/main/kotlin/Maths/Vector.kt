@@ -80,4 +80,6 @@ data class Vector(var dx : Double, var dy : Double, var dz : Double) {
     fun angleBetweenAbs(other : Vector) : Double {
         return acos(this * other / (this.magnitude() * other.magnitude()))
     }
+
+    fun toMach() : Double = this.magnitude() / 340.0
 };

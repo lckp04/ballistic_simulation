@@ -4,22 +4,21 @@ import Maths.CartesianCoordinates.MutableCartesianCoordinate
 import Maths.Vector
 import Plotter.BallisticPlotter
 import Plotter.TimePlotter
-import Presets.launchSiteSpherical
 import Simulator
 import dt
 import time
 import kotlin.math.abs
 
 class `2StageBallistic`(
-    private val stage1 : Ballistic,
-    private val stage2 : Ballistic,
-    private val warhead : Ballistic
+    private val stage1 : PoweredBallistic,
+    private val stage2 : PoweredBallistic,
+    private val warhead : PoweredBallistic
 ) : Interfaces.Target {
 
     private var position : MutableCartesianCoordinate = stage1.startPosition.toMutable()
     private var velocity : Vector = stage1.headingVector.scale_to(1.0)
-    private var secondStage : Ballistic? = null;
-    private var thirdStage : Ballistic? = null;
+    private var secondStage : PoweredBallistic? = null;
+    private var thirdStage : PoweredBallistic? = null;
 
     private var alive : Boolean = true;
 
@@ -29,27 +28,27 @@ class `2StageBallistic`(
     private val gPlotter : TimePlotter = TimePlotter()
     private val altTimePlotter : TimePlotter = TimePlotter()
 
-    private val firstStage : Ballistic = Ballistic(
+    private val firstStage : PoweredBallistic = PoweredBallistic(
         startPosition = stage1.startPosition,
         headingVector = stage1.headingVector,
         thrust = stage1.thrust,
         burnTime = stage1.burnTime,
         emptyWeight = stage1.emptyWeight + stage2.emptyWeight + stage2.fuelMass + warhead.emptyWeight,
         fuelMass = stage1.fuelMass,
-        dragCoefficient = stage1.dragCoefficient,
+        ballisticProfile = stage1.ballisticProfile,
         crossSectionalArea = stage1.crossSectionalArea,
         launchTime = stage1.launchTime
     )
 
-    private fun createSecondStage() : Ballistic {
-        val ret = Ballistic(
+    private fun createSecondStage() : PoweredBallistic {
+        val ret = PoweredBallistic(
             startPosition = this.position.toImmutable(),
             headingVector = this.position.toSphericalCoordinate().convertRelativeVector(stage2.headingVector),
             thrust = stage2.thrust,
             burnTime = stage2.burnTime,
             emptyWeight = stage2.emptyWeight + warhead.emptyWeight,
             fuelMass = stage2.fuelMass,
-            dragCoefficient = stage2.dragCoefficient,
+            ballisticProfile = stage2.ballisticProfile,
             crossSectionalArea = stage2.crossSectionalArea,
             launchTime = time
         )
@@ -58,15 +57,15 @@ class `2StageBallistic`(
         return ret
     }
 
-    private fun createThirdStage() : Ballistic {
-        val ret = Ballistic(
+    private fun createThirdStage() : PoweredBallistic {
+        val ret = PoweredBallistic(
             startPosition = this.position.toImmutable(),
             headingVector = this.velocity,
             thrust = 1.0,
             burnTime = 1.0,
             emptyWeight = warhead.emptyWeight,
             fuelMass = 1.0,
-            dragCoefficient = warhead.dragCoefficient,
+            ballisticProfile = warhead.ballisticProfile,
             crossSectionalArea = warhead.crossSectionalArea,
             launchTime = time
         )
